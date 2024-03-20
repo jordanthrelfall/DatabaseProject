@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta viewport="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="loginSection">
+        <h2>Login Form</h2>
+        <form id="loginForm">
+            UID:<br>
+            <input type="text" name="uid" required>
+            <br>
+            Password:<br>
+            <input type="password" name="password" required>
+            <br><br>
+            <input type="button" value="Login" onclick="login()">
+        </form>
+        <button onclick="showRegistration()">Don't have an account? Register</button>
+    </div>
+    
+    <div id="registrationSection" class="hidden">
+        <h2>Register</h2>
+        <form id="registrationForm">
+            UID:<br>
+            <input type="text" name="uid" required>
+            <br>
+            First Name:<br>
+            <input type="text" name="FirstName" required>
+            <br>
+            Last Name:<br>
+            <input type="text" name="LastName" required>
+            <br>
+            Password:<br>
+            <input type="password" name="Password" required>
+            <br><br>
+            <input type="button" value="Register" onclick="register()">
+        </form>
+        <button onclick="showLogin()">Have an account? Login</button>
+    </div>
+    
+
+<div id="dataSection" class="hidden">
+    <h2>Database Contents</h2>
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data will be inserted here -->
+        </tbody>
+    </table>
+</div>
+
+
+
+<script>
+
+function showRegistration() {
+    document.getElementById('loginSection').classList.add('hidden');
+    document.getElementById('registrationSection').classList.remove('hidden');
+}
+
+function showLogin() {
+    document.getElementById('registrationSection').classList.add('hidden');
+    document.getElementById('loginSection').classList.remove('hidden');
+}
+
+function register() {
+    var formData = new FormData(document.getElementById('registrationForm'));
+
+    fetch('php/register.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(result => {
+        if(result === "Registration successful") {
+            alert("Registration successful. Please log in.");
+            document.getElementById('registrationSection').classList.add('hidden');
+        } else {
+            alert("Registration failed. Please try again.");
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+function login() {
+    var formData = new FormData(document.getElementById('loginForm'));
+
+    fetch('php/login.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(result => {
+        if(result === "Login successful") {          
+            document.getElementById('loginSection').classList.add('hidden');
+            fetchData();
+            window.location.href = 'home.html';
+        } else {
+            alert("Login Failed. Please try again.");
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+function fetchData() {
+    fetch('php/display.php')
+    .then(response => response.json())
+    .then(data => {
+        const tableBody = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
+        data.forEach(row => {
+            let newRow = tableBody.insertRow();
+            let cell1 = newRow.insertCell(0);
+            let cell2 = newRow.insertCell(1);
+            cell1.innerHTML = row.id;
+            cell2.innerHTML = row.name;
+        });
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+// Load the data when the page loads
+window.onload = fetchData;
+</script>
+
+</body>
+</html>
