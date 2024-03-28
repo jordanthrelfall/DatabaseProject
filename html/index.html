@@ -13,11 +13,11 @@
     <div id="loginSection">
         <h2>Login Form</h2>
         <form id="loginForm">
-            UID:<br>
-            <input type="text" name="uid" required>
+            UserID:<br>
+            <input type="text" name="UserID" required>
             <br>
             Password:<br>
-            <input type="password" name="password" required>
+            <input type="password" name="Password" required>
             <br><br>
             <input type="button" value="Login" onclick="login()">
         </form>
@@ -27,14 +27,11 @@
     <div id="registrationSection" class="hidden">
         <h2>Register</h2>
         <form id="registrationForm">
-            UID:<br>
-            <input type="text" name="uid" required>
+            UniversityID:<br>
+            <input type="text" name="UserID" required>
             <br>
-            First Name:<br>
-            <input type="text" name="FirstName" required>
-            <br>
-            Last Name:<br>
-            <input type="text" name="LastName" required>
+            Email:<br>
+            <input type="text" name="Email" required>
             <br>
             Password:<br>
             <input type="password" name="Password" required>
@@ -83,8 +80,9 @@ function register() {
     })
     .then(response => response.text())
     .then(result => {
-        if(result === "Registration successful") {
-            alert("Registration successful. Please log in.");
+        if(result !== "Registration failed") {
+            alert("Registration successful. Your UserID is " + $uid);
+            window.location.href = 'index.html';
             document.getElementById('registrationSection').classList.add('hidden');
         } else {
             alert("Registration failed. Please try again.");
@@ -102,12 +100,18 @@ function login() {
         method: 'POST',
         body: formData
     })
-    .then(response => response.text())
-    .then(result => {
-        if(result === "Login successful") {          
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            sessionStorage.setItem('UserID', data.UserID); // Save UserID to session storage
             document.getElementById('loginSection').classList.add('hidden');
-            fetchData();
-            window.location.href = 'home.html';
+            fetchData(); // Assuming this function is okay as is
+            // Redirect based on userType
+            if (data.Role === 'student') {
+                window.location.href = 'student_home.html';
+            } else if (data.Role === 'admin') {
+                window.location.href = 'admin_home.html';
+            }
         } else {
             alert("Login Failed. Please try again.");
         }

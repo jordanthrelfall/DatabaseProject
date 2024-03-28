@@ -1,8 +1,7 @@
 <?php
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $uid = $_POST['uid'];
-    $firstname = $_POST['FirstName'];
-    $lastname = $_POST['LastName'];
+    $uid = $_POST['UserID'];
+    $email = $_POST['Email'];
     $password = $_POST['Password']; // In a real app, this should be hashed
 
     // Database connection parameters
@@ -20,12 +19,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // Prepare statement to avoid SQL injection
-    $stmt = $conn->prepare("INSERT INTO users (uid, FirstName, LastName, Password) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("ssss", $uid, $firstname, $lastname, $password);
+    $stmt = $conn->prepare("INSERT INTO users (UserID, Email, Password) VALUES (?, ?, ?)");
+    $stmt->bind_param("sss", $uid, $email, $password);
 
     // Execute and check success
     if ($stmt->execute()) {
-        echo "Registration successful";
+        echo $uid;
     } else {
         echo "Registration failed";
     }

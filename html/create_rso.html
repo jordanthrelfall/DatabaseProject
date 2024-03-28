@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Creator & Event List with Search</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: start;
+            padding: 20px;
+            gap: 20px;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+        .form-container {
+            flex: 1;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        .events-container {
+            flex: 4; /* Makes the right side wider */
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        .form-group, .search-bar {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, textarea, button, .event-item {
+
+            padding: 10px;
+            margin-top: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .event-item {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        .event-item button {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            position: absolute;
+            right: 10px;
+            top: 10px;
+        }
+        .event-item .edit-btn {
+            left: 145px;
+            right: 75px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="form-container">
+        <button onclick="navigateToHome()">Go To Home</button> <!-- New button for navigating to RSO page -->
+        <h2>Create RSO</h2>
+        <form method="post" action="php/create_rso.php">
+            <div class="form-group">
+                <label for="Name">RSO Name</label>
+                <input type="text" id="Name" name="Name">
+            </div>
+            <div class="form-group">
+                <label for="Admin">Admin Email</label>
+                <input type="text" id="Admin" name="Admin">
+            <div class="form-group">
+                <label for="m1">Member 1 Email</label>
+                <input type="text" id="m1" name="m1">
+            </div>
+            <div class="form-group">
+                <label for="m2">Member 2 Email</label>
+                <input type="text" id="m2" name="m2">
+            </div>
+            <div class="form-group">
+                <label for="m3">Member 3 Email</label>
+                <input type="text" id="m3" name="m3">
+            </div>
+            <div class="form-group">
+                <label for="m4">Member 4 Email</label>
+                <input type="text" id="m4" name="m4">
+            </div>
+            <button type="submit">Create RSO</button>
+        </form>
+    </div>
+</div>
+<script>
+    window.addEventListener('load', function() {
+        fetch('php/create_rso.php') // Ensure this matches your PHP file's name.
+        .then(response => response.json())
+        .then(data => {
+            const eventsContainer = document.querySelector('.events-container');
+            data.forEach(event => {
+                const eventEl = document.createElement('div');
+                eventEl.classList.add('event-item');
+                eventEl.innerHTML = `
+                    <h3>${event.Name}</h3> <!-- Updated to remove 'event' prefix -->
+                    <p>Date: ${event.Date}</p>
+                    <p>Time: ${event.Time}</p>
+                    <p>Description: ${event.Description}</p>
+                    <p>Category: ${event.Category}</p>
+                    <p>Location: ${event.LocationName}</p>
+                    <p>Latitude: ${event.Latitude}, Longitude: ${event.Longitude}</p>
+                    <p>Contact: ${event.ContactPhone}, ${event.ContactEmail}</p>
+                    <p>Visibility: ${event.Visibility}</p>
+                    <button class="edit-btn">Edit</button>
+                    <button class="delete-btn">Delete</button>
+                `;
+                eventsContainer.appendChild(eventEl);
+            });
+        })
+        .catch(error => console.error('Error loading events:', error));
+    });
+
+    function navigateToHome() 
+    {
+        if (sessionStorage.getItem('privelege') == 'student')
+        {
+            window.location.href = 'student_home.html'; // Update this URL to the actual RSO page URL
+        }
+        else if (sessionStorage.getItem('privelege') == 'admin')
+        {
+            window.location.href = 'admin_home.html'; // Update this URL to the actual RSO page URL
+        }
+    }
+</script>
+    
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join RSO</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: start;
+            padding: 20px;
+            gap: 20px;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+        .events-container {
+            flex: 2; /* Makes the right side wider */
+            min-width: 600px;
+        }
+        .form-group, .search-bar {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, textarea, button, .event-item {
+
+            padding: 10px;
+            margin-top: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .event-item {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        .event-item button {
+            /* padding: 5px 10px; */
+            font-size: 1rem;
+            position: absolute;
+            right: 10px;
+            top: 16px;
+        }
+        .event-item .edit-btn {
+            min-width: 50px;
+            right: 80px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="events-container">
+        <button onclick="navigateToHome()">Go To Home</button> <!-- New button for navigating to RSO page -->
+        <h2>RSOs</h2>
+        <div class="search-bar">
+            <input type="text" placeholder="Search events...">
+        </div>
+        <!-- Example of listed events -->
+        <!-- Events will be added here dynamically -->
+    </div>
+</div>
+
+<script>
+    window.addEventListener('load', function() {
+        fetch('php/list_rso.php') // Ensure this matches your PHP file's name.
+        .then(response => response.json())
+        .then(data => {
+            const eventsContainer = document.querySelector('.events-container');
+            data.forEach(event => {
+                const eventEl = document.createElement('div');
+                eventEl.classList.add('event-item');
+                eventEl.innerHTML = `
+                    <h3>${event.Name}</h3> <!-- Updated to remove 'event' prefix -->
+                    <button class="join-btn" onclick="joinRSO(${event.RSOID})">Join</button>
+                `;
+                eventsContainer.appendChild(eventEl);
+            });
+        })
+        .catch(error => console.error('Error loading RSOs:', error));
+    });
+
+    function navigateToHome() {
+
+        if (sessionStorage.getItem('privelege') === 'student')
+        {
+            window.location.href = 'student_home.html'; // Update this URL to the actual RSO page URL
+        }
+        else if (sessionStorage.getItem('privelege') === 'admin')
+        {
+            window.location.href = 'admin_home.html'; // Update this URL to the actual RSO page URL
+        }
+       
+    }
+
+    function joinRSO(rsoId) 
+    {
+        const userId = sessionStorage.getItem('UserID'); // Make sure to assign this to a variable
+
+        fetch(`php/join_rso.php?rsoId=${encodeURIComponent(rsoId)}&UserID=${encodeURIComponent(userId)}`, {
+            method: 'GET',
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Handle response
+            alert(data.message); // Assuming your PHP script returns a JSON object with a message property
+        })
+        .catch(error => {
+            console.error('Error joining RSO:', error);
+        });
+
+        alert("Success!");
+    }
+
+</script>
+
+</body>
+</html>
