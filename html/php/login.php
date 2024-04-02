@@ -18,7 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // Use prepared statement to prevent SQL injection
-    $stmt = $conn->prepare("SELECT Password, Role FROM users WHERE UserID = ?;");
+    $stmt = $conn->prepare("SELECT Password, Role, UniversityID FROM users WHERE UserID = ?;");
     $stmt->bind_param("s", $uid); // "s" specifies the variable type => 'string'
     $stmt->execute();
     $result = $stmt->get_result();
@@ -27,7 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Verifying the password
         if ($password == $row['Password']) {
             // Login successful
-            echo json_encode(['status' => 'success', 'Role' => $row['Role'], 'UserID' => $uid]);
+            echo json_encode(['status' => 'success', 'Role' => $row['Role'], 'UserID' => $uid, 'UniversityID' => $row['UniversityID']]);
         } else {
             // Password does not match
             echo "Login failed";

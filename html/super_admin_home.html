@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Creator & Event List with Search</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: start;
+            padding: 20px;
+            gap: 20px;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+        .form-container {
+            flex: 1;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        .events-container {
+            flex: 4; /* Makes the right side wider */
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        .form-group, .search-bar {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, textarea, button, .event-item {
+
+            padding: 10px;
+            margin-top: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .event-item {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        .event-item button {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            position: absolute;
+            right: 10px;
+            top: 10px;
+        }
+        .event-item .edit-btn {
+            left: 145px;
+            right: 75px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="form-container">
+        <button onclick="createRSO()">Create RSO</button>          
+        <button onclick="navigateToRSO()">Join RSO</button> 
+        <button onclick="approveEvent()">Approve Public Event</button> 
+        <h2>Create Event</h2>
+        <form method="post" action="php/create_event.php">
+            <div class="form-group">
+                <label for="eventName">Event Name</label>
+                <input type="text" id="eventName" name="eventName">
+            </div>
+            <div class="form-group">
+                <label for="eventDate">Event Date</label>
+                <input type="date" id="eventDate" name="eventDate">
+            <div class="form-group">
+                <label for="eventTime">Time</label>
+                <input type="time" id="eventTime" name="eventTime">
+            </div>
+            </div>
+            <div class="form-group">
+                <label for="eventDescription">Description</label>
+                <textarea id="eventDescription" name="eventDescription"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="eventCategory">Category</label>
+                <select id="eventCategory" name="eventCategory">
+                    <option value="social">Social</option>
+                    <option value="fundraising">Fundraising</option>
+                    <option value="tech_talk">Tech Talk</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>       
+            <!-- Location Name -->
+            <div class="form-group">
+                <label for="eventLocationName">Location Name</label>
+                <input type="text" id="eventLocationName" name="eventLocationName">
+            </div>
+            
+            <!-- Latitude -->
+            <div class="form-group">
+                <label for="eventLatitude">Latitude</label>
+                <input type="text" id="eventLatitude" name="eventLatitude">
+            </div>
+            
+            <!-- Longitude -->
+            <div class="form-group">
+                <label for="eventLongitude">Longitude</label>
+                <input type="text" id="eventLongitude" name="eventLongitude">
+            </div>
+            
+            <!-- Contact Phone -->
+            <div class="form-group">
+                <label for="eventContactPhone">Contact Phone</label>
+                <input type="tel" id="eventContactPhone" name="eventContactPhone">
+            </div>
+            
+            <!-- Contact Email -->
+            <div class="form-group">
+                <label for="eventContactEmail">Contact Email</label>
+                <input type="email" id="eventContactEmail" name="eventContactEmail" >
+            </div>
+            
+            <!-- Visibility -->
+            <div class="form-group">
+                <label for="eventVisibility">Visibility</label>
+                <select id="eventVisibility" name="eventVisibility">
+                    <option value="public">Public</option>
+                    <option value="private">Private</option>
+                    <option value="RSO">RSO</option>
+                </select>
+            </div>
+            <button type="submit">Create Event</button>
+        </form>
+    </div>
+    
+    <div class="events-container">
+        <button onclick="createUniversity()">Create University</button>
+        <h2>Events List</h2>
+        <div class="search-bar">
+            <input type="text" placeholder="Search events...">
+        </div>
+    </div>
+</div>
+<script>
+    window.addEventListener('load', function() {
+        fetch('php/list_events.php') // Ensure this matches your PHP file's name.
+        .then(response => response.json())
+        .then(data => {
+            const eventsContainer = document.querySelector('.events-container');
+            data.forEach(event => {
+                const eventEl = document.createElement('div');
+                eventEl.classList.add('event-item');
+                eventEl.innerHTML = `
+                    <h3>${event.Name}</h3> <!-- Updated to remove 'event' prefix -->
+                    <p>Date: ${event.Date}</p>
+                    <p>Time: ${event.Time}</p>
+                    <p>Description: ${event.Description}</p>
+                    <p>Category: ${event.Category}</p>
+                    <p>Location: ${event.LocationName}</p>
+                    <p>Latitude: ${event.Latitude}, Longitude: ${event.Longitude}</p>
+                    <p>Contact: ${event.ContactPhone}, ${event.ContactEmail}</p>
+                    <p>Visibility: ${event.Visibility}</p>
+                    <button class="edit-btn">Edit</button>
+                    <button class="delete-btn">Delete</button>
+                `;
+                eventsContainer.appendChild(eventEl);
+            });
+        })
+        .catch(error => console.error('Error loading events:', error));
+    });
+
+    function navigateToRSO() {
+        sessionStorage.setItem('privelege', 'super_admin');
+        window.location.href = 'rso_page.html'; // Update this URL to the actual RSO page URL
+    }
+
+    function createRSO() {
+        sessionStorage.setItem('privelege', 'super_admin');
+        window.location.href = 'create_rso.html'; // Update this URL to the actual RSO page URL
+    }
+
+    function approveEvent() {
+        window.location.href = 'create_rso.html'; // Update this URL to the actual RSO page URL
+    }
+
+    function createUniversity() {
+        window.location.href = 'create_university.html'; // Update this URL to the actual RSO page URL
+    }
+</script>
+    
+</body>
+</html>

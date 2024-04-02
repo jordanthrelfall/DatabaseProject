@@ -106,7 +106,10 @@
         {
             window.location.href = 'admin_home.html'; // Update this URL to the actual RSO page URL
         }
-       
+        else if (sessionStorage.getItem('privelege') === 'super_admin')
+        {
+            window.location.href = 'super_admin_home.html'; // Update this URL to the actual RSO page URL
+        }   
     }
 
     function joinRSO(rsoId) 

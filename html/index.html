@@ -27,9 +27,6 @@
     <div id="registrationSection" class="hidden">
         <h2>Register</h2>
         <form id="registrationForm">
-            UniversityID:<br>
-            <input type="text" name="UserID" required>
-            <br>
             Email:<br>
             <input type="text" name="Email" required>
             <br>
@@ -71,8 +68,39 @@ function showLogin() {
     document.getElementById('loginSection').classList.remove('hidden');
 }
 
-function register() {
+function getEmailDomain(email) {
+    const domain = email.split('@')[1];
+    return fetch(`php/get_domain.php?domain=${encodeURIComponent(domain)}`)
+        .then(response => response.text())
+        .then(universityID => {
+            // Assuming the script returns "Domain not found" when the domain isn't in the database
+            if (universityID === "Domain not found") {
+                return null;
+            }
+            return universityID;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            return null;
+        });
+}
+
+async function register() {
     var formData = new FormData(document.getElementById('registrationForm'));
+    
+    var email = formData.get('Email');
+
+    alert(email);
+    var universityID = await getEmailDomain(email);
+    alert(universityID);
+
+    if (universityID === null) {
+        alert("Registration failed: Email domain does not exist.");
+        return; // Stop execution if the domain does not exist
+    }
+
+    // Append the University ID to your formData before submitting
+    formData.append('UniversityID', universityID);
 
     fetch('php/register.php', {
         method: 'POST',
@@ -80,9 +108,9 @@ function register() {
     })
     .then(response => response.text())
     .then(result => {
-        if(result !== "Registration failed") {
-            alert("Registration successful. Your UserID is " + $uid);
-            window.location.href = 'index.html';
+        if (result !== "Registration failed") {
+            alert("Registration successful. Your UserID is " + result + ".");
+            window.location.href = 'index.html'; // Redirect as needed
             document.getElementById('registrationSection').classList.add('hidden');
         } else {
             alert("Registration failed. Please try again.");
@@ -92,6 +120,7 @@ function register() {
         console.error('Error:', error);
     });
 }
+
 
 function login() {
     var formData = new FormData(document.getElementById('loginForm'));
@@ -104,6 +133,7 @@ function login() {
     .then(data => {
         if (data.status === 'success') {
             sessionStorage.setItem('UserID', data.UserID); // Save UserID to session storage
+            sessionStorage.setItem('UniversityID', data.UniversityID); // Save UserID to session storage
             document.getElementById('loginSection').classList.add('hidden');
             fetchData(); // Assuming this function is okay as is
             // Redirect based on userType
@@ -111,6 +141,9 @@ function login() {
                 window.location.href = 'student_home.html';
             } else if (data.Role === 'admin') {
                 window.location.href = 'admin_home.html';
+            }
+            else if (data.Role === 'super_admin') {
+                window.location.href = 'super_admin_home.html';
             }
         } else {
             alert("Login Failed. Please try again.");

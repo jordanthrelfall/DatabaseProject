@@ -80,7 +80,11 @@
 
 <script>
     window.addEventListener('load', function() {
-        fetch('php/list_events.php') // Ensure this matches your PHP file's name.
+        const UniversityID = sessionStorage.getItem('UniversityID'); // Or however you store it
+        alert("hi");
+        alert(UniversityID);
+        const UserID = sessionStorage.getItem('UserID');
+        fetch(`php/list_events.php?UniversityID=${UniversityID}&UserID=${UserID}`) // Ensure this matches your PHP file's name.
         .then(response => response.json())
         .then(data => {
             const eventsContainer = document.querySelector('.events-container');
