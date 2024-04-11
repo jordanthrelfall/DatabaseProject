@@ -81,8 +81,6 @@
 <script>
     window.addEventListener('load', function() {
         const UniversityID = sessionStorage.getItem('UniversityID'); // Or however you store it
-        alert("hi");
-        alert(UniversityID);
         const UserID = sessionStorage.getItem('UserID');
         fetch(`php/list_events.php?UniversityID=${UniversityID}&UserID=${UserID}`) // Ensure this matches your PHP file's name.
         .then(response => response.json())
@@ -101,9 +99,9 @@
                     <p>Latitude: ${event.Latitude}, Longitude: ${event.Longitude}</p>
                     <p>Contact: ${event.ContactPhone}, ${event.ContactEmail}</p>
                     <p>Visibility: ${event.Visibility}</p>
-                    <button class="edit-btn">Edit</button>
-                    <button class="delete-btn">Delete</button>
+                    <button onclick="navigateToComments(${event.EventID})">Manage Comments</button>
                 `;
+
                 eventsContainer.appendChild(eventEl);
             });
         })
@@ -119,6 +117,11 @@
         sessionStorage.setItem('privelege', 'student');
         window.location.href = 'create_rso.html'; // Update this URL to the actual RSO page URL
     }
+
+    function navigateToComments(eventId) {
+        window.location.href = `comments_page.html?eventId=${eventId}`; // Adjust the path as necessary
+    }
+
 </script>
 
 </body>

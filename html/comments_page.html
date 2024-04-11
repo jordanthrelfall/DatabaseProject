@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Comments</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: start;
+            padding: 20px;
+            gap: 20px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .comments-container, .add-comment-form {
+            min-width: 600px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, textarea, button, .comment-item {
+            padding: 10px;
+            margin-top: 5px;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: auto; /* Adjust button width as necessary */
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .comment-item {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            padding: 15px;
+        }
+        .back-btn {
+            align-self: flex-start; /* Align the back button to the left */
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <button class="back-btn" onclick="navigateToHome()">Go To Home</button>
+    <h2>Event Comments</h2>
+    <div class="comments-container">
+        <!-- Comments will be dynamically inserted here -->
+    </div>
+    <div class="add-comment-form">
+        <label for="commentRating">Rating:</label>
+        <select id="commentRating">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5" selected>5</option>
+        </select>
+        <textarea id="commentText" placeholder="Write a comment..."></textarea>
+        <button onclick="addComment()">Submit Comment</button>
+    </div>
+</div>
+
+<script>
+const urlParams = new URLSearchParams(window.location.search);
+const eventId = urlParams.get('eventId');
+
+window.addEventListener('load', function() {
+    fetchComments();
+});
+function fetchComments() {
+    const UserID = sessionStorage.getItem('UserID');
+    fetch(`php/fetch_comments.php?eventId=${eventId}`)
+    .then(response => response.json())
+    .then(comments1 => {
+        const commentsContainer = document.querySelector('.comments-container');
+        commentsContainer.innerHTML = ''; // Clear current comments
+        comments1.forEach(comment => {
+            const commentEl = document.createElement('div');
+            commentEl.classList.add('comment-item');
+            let buttonsHTML = '';
+            if (comment.UserID.toString() === UserID) {
+                commentEl.innerHTML = `
+                    <div id="comment-${comment.CommentID}" data-rating="${comment.Rating}" data-user-id="${comment.UserID}">
+                        <h3>UserID: ${comment.UserID}</h3>
+                        <p>${comment.Comment}</p>
+                        <p>Rating: ${comment.Rating}</p>
+                        <button onclick="editComment(${comment.CommentID})">Edit</button>
+                        <button onclick="deleteComment(${comment.CommentID})">Delete</button>
+                    </div>
+                `;
+                commentsContainer.appendChild(commentEl);
+            }
+            else{
+                commentEl.innerHTML = `
+                    <div id="comment-${comment.CommentID}" data-rating="${comment.Rating}">
+                        <h3>UserID: ${comment.UserID}</h3>
+                        <p>${comment.Comment}</p>
+                        <p>Rating: ${comment.Rating}</p>
+                    </div>
+                `;
+                commentsContainer.appendChild(commentEl); 
+            }
+
+        });
+    })
+    .catch(error => console.error('Error loading comments:', error));
+}
+
+function addComment() {
+    const commentText = document.getElementById('commentText').value;
+    const commentRating = document.getElementById('commentRating').value;
+    const UserID = sessionStorage.getItem('UserID');
+    fetch('php/add_comments.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+            eventId: eventId, 
+            text: commentText,
+            rating: commentRating,
+            userID: UserID
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+        fetchComments(); // Refresh comments list
+    })
+    .catch(error => console.error('Error adding comment:', error));
+}
+
+function deleteComment(commentID) {
+    if (confirm("Are you sure you want to delete this comment?") == true)
+    {
+        fetch('php/delete_comment.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+                commentID: commentID
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            fetchComments(); // Refresh comments list
+        })
+        .catch(error => console.error('Error adding comment:', error));
+    }
+}
+
+function editComment(commentId) {
+    const commentEl = document.querySelector(`#comment-${commentId}`);
+    const currentText = commentEl.querySelector('p').innerText;
+    const currentRating = commentEl.dataset.rating;
+
+    commentEl.innerHTML = `
+        <textarea class="edit-text">${currentText}</textarea>
+        <select class="edit-rating">
+            <option value="1" ${currentRating === "1" ? "selected" : ""}>1</option>
+            <option value="2" ${currentRating === "2" ? "selected" : ""}>2</option>
+            <option value="3" ${currentRating === "3" ? "selected" : ""}>3</option>
+            <option value="4" ${currentRating === "4" ? "selected" : ""}>4</option>
+            <option value="5" ${currentRating === "5" ? "selected" : ""}>5</option>
+        </select>
+        <button onclick="saveEdit(${commentId})">Save</button>
+        <button onclick="cancelEdit(${commentId}, '${currentText}', ${currentRating})">Cancel</button>
+    `;
+}
+
+function saveEdit(commentId) {
+    const commentEl = document.querySelector(`#comment-${commentId}`);
+    const newText = commentEl.querySelector('.edit-text').value;
+    const newRating = commentEl.querySelector('.edit-rating').value;
+
+    fetch('php/edit_comment.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+            commentId: commentId, 
+            text: newText,
+            rating: newRating
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+        fetchComments(); // Refresh comments list or directly update the UI
+    })
+    .catch(error => console.error('Error updating comment:', error));
+}
+
+function cancelEdit(commentId, originalText, originalRating) {
+    const commentEl = document.querySelector(`#comment-${commentId}`);
+    commentEl.innerHTML = `
+        <h3>UserID: ${commentEl.dataset.userId}</h3>
+        <p>${originalText}</p>
+        <p>Rating: ${originalRating}</p>
+        <button onclick="editComment(${commentId})">Edit</button>
+        <button onclick="deleteComment(${commentId})">Delete</button>
+    `;
+}
+
+
+function navigateToHome() {
+    window.location.href = 'student_home.html'; // Update this URL to the actual RSO page URL
+
+}
+
+</script>
+
+</body>
+</html>

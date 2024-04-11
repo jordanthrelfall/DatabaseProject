@@ -1,6 +1,8 @@
 <?php
 header('Content-Type: application/json');
 
+$userID = $_GET['userID'] ?? '';
+
 $servername = "localhost";
 $dbusername = "root";
 $dbpassword = "";
@@ -23,7 +25,21 @@ $events = [];
 if ($result->num_rows > 0) {
     // output data of each row
     while($row = $result->fetch_assoc()) {
-        $events[] = $row;
+
+        $sql = "SELECT * FROM memberships WHERE RSOID = ? AND UserID = ?;";
+        $selectStmt = $conn->prepare($sql);
+        $selectStmt->bind_param("ii", $row['RSOID'], $userID);
+        $selectStmt->execute();
+        $result1 = $selectStmt->get_result();
+
+        if ($result1->num_rows > 0) {
+            $row['Membership'] = 'Yes';
+            $events[] = $row;
+        }
+        else{
+            $row['Membership'] = 'No';
+            $events[] = $row;
+        }
     }
 } else {
     echo "0 results";

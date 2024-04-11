@@ -17,12 +17,14 @@
             gap: 20px;
         }
         .form-container {
-            flex: 1;
+            width: 400px;
+            flex: 2;
             padding: 20px;
             border: 1px solid #ccc;
             border-radius: 8px;
         }
         .events-container {
+            flex-basis: 600px;
             flex: 4; /* Makes the right side wider */
             padding: 20px;
             border: 1px solid #ccc;
@@ -77,9 +79,9 @@
     <div class="form-container">
         <button onclick="createRSO()">Create RSO</button>          
         <button onclick="navigateToRSO()">Join RSO</button> 
-        <button onclick="approveEvent()">Approve Public Event</button> 
+        <button onclick="approveEvent()">Public Event Requests</button> 
         <h2>Create Event</h2>
-        <form method="post" action="php/create_event.php">
+        <form method="post">
             <div class="form-group">
                 <label for="eventName">Event Name</label>
                 <input type="text" id="eventName" name="eventName">
@@ -110,7 +112,9 @@
                 <label for="eventLocationName">Location Name</label>
                 <input type="text" id="eventLocationName" name="eventLocationName">
             </div>
-            
+
+            <div id="eventLocationMap" style="height: 400px; width: 100%; margin-top: 15px;"></div>
+
             <!-- Latitude -->
             <div class="form-group">
                 <label for="eventLatitude">Latitude</label>
@@ -144,7 +148,7 @@
                     <option value="RSO">RSO</option>
                 </select>
             </div>
-            <button type="submit">Create Event</button>
+            <button type="submit" id="createEventButton">Create Event</button>
         </form>
     </div>
     
@@ -156,34 +160,107 @@
         </div>
     </div>
 </div>
-<script>
-    window.addEventListener('load', function() {
-        fetch('php/list_events.php') // Ensure this matches your PHP file's name.
-        .then(response => response.json())
-        .then(data => {
-            const eventsContainer = document.querySelector('.events-container');
-            data.forEach(event => {
-                const eventEl = document.createElement('div');
-                eventEl.classList.add('event-item');
-                eventEl.innerHTML = `
-                    <h3>${event.Name}</h3> <!-- Updated to remove 'event' prefix -->
-                    <p>Date: ${event.Date}</p>
-                    <p>Time: ${event.Time}</p>
-                    <p>Description: ${event.Description}</p>
-                    <p>Category: ${event.Category}</p>
-                    <p>Location: ${event.LocationName}</p>
-                    <p>Latitude: ${event.Latitude}, Longitude: ${event.Longitude}</p>
-                    <p>Contact: ${event.ContactPhone}, ${event.ContactEmail}</p>
-                    <p>Visibility: ${event.Visibility}</p>
-                    <button class="edit-btn">Edit</button>
-                    <button class="delete-btn">Delete</button>
-                `;
-                eventsContainer.appendChild(eventEl);
-            });
-        })
-        .catch(error => console.error('Error loading events:', error));
-    });
+<script >
 
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('createEventButton').addEventListener('click', function(event) {
+        const form = document.getElementById('createEventForm');
+        const UniversityID = sessionStorage.getItem('UniversityID');
+        // Collect form data
+        const formData = {
+            eventName: document.getElementById('eventName').value,
+            eventDate: document.getElementById('eventDate').value,
+            eventTime: document.getElementById('eventTime').value,
+            eventDescription: document.getElementById('eventDescription').value,
+            eventCategory: document.getElementById('eventCategory').value,
+            eventLocationName: document.getElementById('eventLocationName').value,
+            eventLatitude: document.getElementById('eventLatitude').value,
+            eventLongitude: document.getElementById('eventLongitude').value,
+            eventContactPhone: document.getElementById('eventContactPhone').value,
+            eventContactEmail: document.getElementById('eventContactEmail').value,
+            eventVisibility: document.getElementById('eventVisibility').value,
+            universityID: UniversityID
+        };
+
+            fetch('php/create_event.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            })
+            .then(response => response.json())
+            .then(data => console.log('Success:', data))
+            .catch((error) => console.error('Error:', error));
+
+            alert("Event Created.");
+            window.location.href = 'super_admin_home.html';
+
+        // Here you can use the formData object to send a request to your server
+        // For example, using fetch() to make an AJAX request
+    });
+});
+
+window.addEventListener('load', function() {
+    const UniversityID = sessionStorage.getItem('UniversityID');
+    const UserID = sessionStorage.getItem('UserID');
+    fetch(`php/list_events.php?UniversityID=${UniversityID}&UserID=${UserID}`)
+    .then(response => response.json())
+    .then(data => {
+        const eventsContainer = document.querySelector('.events-container');
+        data.forEach((event, index) => {
+            const eventEl = document.createElement('div');
+            eventEl.classList.add('event-item');
+            const mapContainerId = `map-${index}`; // Unique ID for each map container
+            eventEl.innerHTML = `
+                <h3>${event.Name}</h3>
+                <p>Date: ${event.Date}</p>
+                <p>Time: ${event.Time}</p>
+                <p>Description: ${event.Description}</p>
+                <p>Category: ${event.Category}</p>
+                <p>Location: ${event.LocationName}</p>
+                <div id="${mapContainerId}" style="height: 200px; width: 100%;"></div>
+                <p>Latitude: ${event.Latitude}, Longitude: ${event.Longitude}</p>
+                <p>Contact: ${event.ContactPhone}, ${event.ContactEmail}</p>
+                <p>Visibility: ${event.Visibility}</p>
+            `;
+            eventsContainer.appendChild(eventEl);
+
+            // Initialize the map for the current event
+            initializeEventMap(mapContainerId, parseFloat(event.Latitude), parseFloat(event.Longitude));
+        });
+    })
+    .catch(error => console.error('Error loading events:', error));
+});
+
+    function initMap() {
+        var map = new google.maps.Map(document.getElementById('eventLocationMap'), {
+            center: {lat: 28.6016, lng: -81.2005}, // Default center
+            zoom: 14
+        });
+
+        // Add a marker upon map click and update the form's latitude and longitude fields
+        var marker;
+        map.addListener('click', function(e) {
+            if (marker) {
+                marker.setPosition(e.latLng);
+            } else {
+                marker = new google.maps.Marker({
+                    position: e.latLng,
+                    map: map
+                });
+            }
+
+            document.getElementById('eventLatitude').value = e.latLng.lat().toFixed(6);
+            document.getElementById('eventLongitude').value = e.latLng.lng().toFixed(6);
+        });
+    }
+    function initializeEventMap(containerId, lat, lng) {
+        new google.maps.Map(document.getElementById(containerId), {
+            center: {lat: lat, lng: lng},
+            zoom: 15
+        });
+    }
     function navigateToRSO() {
         sessionStorage.setItem('privelege', 'super_admin');
         window.location.href = 'rso_page.html'; // Update this URL to the actual RSO page URL
@@ -193,15 +270,32 @@
         sessionStorage.setItem('privelege', 'super_admin');
         window.location.href = 'create_rso.html'; // Update this URL to the actual RSO page URL
     }
+    function submitEvent() {
+        const formData = new FormData(document.getElementById('createEventForm'));
+
+        fetch('php/create_event.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json()) // Assuming your PHP script returns JSON
+        .then(data => {
+            console.log('Success:', data);
+            alert("success");
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+        window.location.href = 'super_admin_home.html';
+    }
 
     function approveEvent() {
-        window.location.href = 'create_rso.html'; // Update this URL to the actual RSO page URL
+        window.location.href = 'approve_event.html'; // Update this URL to the actual RSO page URL
     }
 
     function createUniversity() {
         window.location.href = 'create_university.html'; // Update this URL to the actual RSO page URL
     }
 </script>
-    
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAwWWen_AsLzyieQr65NNZJGBwebbGDX0k&callback=initMap"></script>    
 </body>
 </html>

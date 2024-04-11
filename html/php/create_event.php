@@ -1,17 +1,19 @@
 <?php
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $data = json_decode(file_get_contents('php://input'), true);
     // Collect value of input fields
-    $eventName = $_POST['eventName'];
-    $eventDate = $_POST['eventDate'];
-    $eventTime = $_POST['eventTime'];
-    $eventDescription = $_POST['eventDescription'];
-    $eventCategory = $_POST['eventCategory'];
-    $eventLocationName = $_POST['eventLocationName'];
-    $eventLatitude = $_POST['eventLatitude'];
-    $eventLongitude = $_POST['eventLongitude'];
-    $eventContactPhone = $_POST['eventContactPhone'];
-    $eventContactEmail = $_POST['eventContactEmail'];
-    $eventVisibility = $_POST['eventVisibility'];
+    $eventName = $data['eventName'];
+    $eventDate = $data['eventDate'];
+    $eventTime = $data['eventTime'];
+    $eventDescription = $data['eventDescription'];
+    $eventCategory = $data['eventCategory'];
+    $eventLocationName = $data['eventLocationName'];
+    $eventLatitude = $data['eventLatitude'];
+    $eventLongitude = $data['eventLongitude'];
+    $eventContactPhone = $data['eventContactPhone'];
+    $eventContactEmail = $data['eventContactEmail'];
+    $eventVisibility = $data['eventVisibility'];
+    $universityID = $data['universityID'];
+    $userID = $data['userID'];
 
     // Database connection variables
     $servername = "localhost";
@@ -28,8 +30,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // Prepare and bind
-    $stmt = $conn->prepare("INSERT INTO events (Name, Date, Time, Description, Category, LocationName, Latitude, Longitude, ContactPhone, ContactEmail, Visibility) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("ssssssddsss", $eventName, $eventDate, $eventTime, $eventDescription, $eventCategory, $eventLocationName, $eventLatitude, $eventLongitude, $eventContactPhone, $eventContactEmail, $eventVisibility);
+    $stmt = $conn->prepare("INSERT INTO events (Name, Date, Time, Description, Category, LocationName, Latitude, Longitude, ContactPhone, ContactEmail, Visibility,UniversityID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("ssssssddsssi", $eventName, $eventDate, $eventTime, $eventDescription, $eventCategory, $eventLocationName, $eventLatitude, $eventLongitude, $eventContactPhone, $eventContactEmail, $eventVisibility, $universityID);
 
     if ($stmt->execute()) {
         echo "New event created successfully";
@@ -39,5 +41,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $stmt->close();
     $conn->close();
-}
 ?>

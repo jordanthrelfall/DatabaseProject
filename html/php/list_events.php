@@ -17,6 +17,7 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+// Fetch RSOIDs where the user is a member
 $rsoQuery = "SELECT RSOID FROM memberships WHERE UserID = ?";
 $stmt = $conn->prepare($rsoQuery);
 $stmt->bind_param("i", $UserID);
@@ -28,28 +29,42 @@ while ($rsoRow = $rsoResult->fetch_assoc()) {
 }
 $stmt->close();
 
-$rsoIDsString = implode(',', array_map('intval', $rsoIDs));
-
-
-$sql = "SELECT Name, Date, Time, Description, Category, LocationName, Latitude, Longitude, ContactPhone, ContactEmail, Visibility FROM events WHERE Visibility='public' OR (Visibility = 'private' AND UniversityID = ?);";
-
-$stmt = $conn->prepare($sql);
+// Fetch public and university-specific private events
+$publicPrivateEventsQuery = "SELECT * FROM events WHERE Visibility='public' OR (Visibility = 'private' AND UniversityID = ?)";
+$stmt = $conn->prepare($publicPrivateEventsQuery);
 $stmt->bind_param("s", $UniversityID);
 $stmt->execute();
-$result = $stmt->get_result();
-
+$publicPrivateResult = $stmt->get_result();
 $events = [];
 
-if ($result->num_rows > 0) {
-    while($row = $result->fetch_assoc()) {
-        $events[] = $row;
+while ($row = $publicPrivateResult->fetch_assoc()) {
+    $events[$row['EventID']] = $row; // Use EventID as key to avoid duplicates
+}
+$stmt->close();
+
+// Fetch events associated with RSOIDs
+if (!empty($rsoIDs)) {
+    $placeholders = implode(',', array_fill(0, count($rsoIDs), '?'));
+    $types = str_repeat('i', count($rsoIDs));
+    $rsoEventsQuery = "SELECT * FROM events WHERE RSOID IN ($placeholders)";
+    $stmt = $conn->prepare($rsoEventsQuery);
+    $stmt->bind_param($types, ...$rsoIDs);
+    $stmt->execute();
+    $rsoResult = $stmt->get_result();
+
+    while ($row = $rsoResult->fetch_assoc()) {
+        $events[$row['EventID']] = $row; // Use EventID as key to avoid duplicates
     }
-} else {
+    $stmt->close();
+}
+
+if (empty($events)) {
     $events = ["message" => "No events found."];
+} else {
+    $events = array_values($events); // Re-index the array to ensure JSON array format
 }
 
 echo json_encode($events);
 
-$stmt->close();
 $conn->close();
 ?>

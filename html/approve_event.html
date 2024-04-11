@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Public Event Requests</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: start;
+            padding: 20px;
+            gap: 20px;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+        .events-container {
+            flex: 2; /* Makes the right side wider */
+            min-width: 600px;
+        }
+        .form-group, .search-bar {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, textarea, button, .event-item {
+
+            padding: 10px;
+            margin-top: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .event-item {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        .event-item button {
+            /* padding: 5px 10px; */
+            font-size: 1rem;
+            position: absolute;
+            right: 10px;
+            top: 16px;
+        }
+        .event-item .edit-btn {
+            min-width: 50px;
+            right: 80px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="events-container">
+        <button onclick="navigateToHome()">Go To Home</button> <!-- New button for navigating to RSO page -->
+        <h2>Public Event Requests</h2>
+        <div class="events">
+            
+        </div>
+
+        <!-- Example of listed events -->
+        <!-- Events will be added here dynamically -->
+    </div>
+</div>
+
+<script>
+    window.addEventListener('load', fetchEventRequests);
+    
+    function fetchEventRequests() {
+        fetch('php/list_event_requests.php')
+        .then(response => response.json())
+        .then(data => populateEvents(data))
+        .catch(error => console.error('Error loading event requests:', error));
+    }
+    
+    function populateEvents(data) {
+        const eventsContainer = document.querySelector('.events');
+        eventsContainer.innerHTML = ''; // Clear current events
+        data.forEach(event => {
+            const eventEl = document.createElement('div');
+            eventEl.classList.add('event-item');
+            eventEl.innerHTML = `
+                <h3>${event.Name}</h3>
+                <p>Date: ${event.Date}</p>
+                <p>Time: ${event.Time}</p>
+                <p>Description: ${event.Description}</p>
+                <p>Category: ${event.Category}</p>
+                <p>Location: ${event.LocationName}</p>
+                <p>Latitude: ${event.Latitude}, Longitude: ${event.Longitude}</p>
+                <p>Contact: ${event.ContactPhone}, ${event.ContactEmail}</p>
+                <p>Visibility: ${event.Visibility}</p>
+                <button class="edit-btn" onclick="approveEvent(${event.RequestID})">Approve</button>
+                <button class="delete-btn" onclick="declineEvent(${event.RequestID})">Decline</button>
+            `;
+            eventsContainer.appendChild(eventEl);
+        });
+    }
+    
+    function approveEvent(eventId) {
+        alert(eventId);
+        fetch(`php/approve_event.php`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ eventId: eventId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+        })
+        .catch(error => console.error('Error approving event:', error));
+
+        window.location.href = 'approve_event.html';
+    }
+    
+    function declineEvent(eventId) {
+        fetch(`php/decline_event.php`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ eventId: eventId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+        })
+        .catch(error => console.error('Error declining event:', error));
+
+        window.location.href = 'approve_event.html';
+    }
+
+    function navigateToHome() {
+        window.location.href = 'super_admin_home.html';
+    }
+    </script>
+</body>
+</html>

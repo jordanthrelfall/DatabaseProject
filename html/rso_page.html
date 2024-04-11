@@ -79,18 +79,32 @@
 
 <script>
     window.addEventListener('load', function() {
-        fetch('php/list_rso.php') // Ensure this matches your PHP file's name.
+        const userID = sessionStorage.getItem('UserID');
+        fetch(`php/list_rso.php?userID=${userID}`) // Ensure this matches your PHP file's name.
         .then(response => response.json())
         .then(data => {
             const eventsContainer = document.querySelector('.events-container');
             data.forEach(event => {
                 const eventEl = document.createElement('div');
                 eventEl.classList.add('event-item');
-                eventEl.innerHTML = `
+
+                if (event.Membership === 'Yes')
+                {
+                    eventEl.innerHTML = `
+                    <h3>${event.Name}</h3> <!-- Updated to remove 'event' prefix -->
+                    <button class="join-btn" onclick="leaveRSO(${event.RSOID})">Leave</button>
+                    `;
+                    eventsContainer.appendChild(eventEl);
+                }
+                else
+                {
+                    eventEl.innerHTML = `
                     <h3>${event.Name}</h3> <!-- Updated to remove 'event' prefix -->
                     <button class="join-btn" onclick="joinRSO(${event.RSOID})">Join</button>
-                `;
-                eventsContainer.appendChild(eventEl);
+                    `;
+                    eventsContainer.appendChild(eventEl);
+                }
+
             });
         })
         .catch(error => console.error('Error loading RSOs:', error));
@@ -129,6 +143,29 @@
         });
 
         alert("Success!");
+
+        window.location.href = 'rso_page.html';
+    }
+
+    function leaveRSO(rsoId) 
+    {
+        const userId = sessionStorage.getItem('UserID'); // Make sure to assign this to a variable
+
+        fetch(`php/leave_rso.php?rsoId=${encodeURIComponent(rsoId)}&UserID=${encodeURIComponent(userId)}`, {
+            method: 'GET',
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Handle response
+            alert(data.message); // Assuming your PHP script returns a JSON object with a message property
+        })
+        .catch(error => {
+            console.error('Error joining RSO:', error);
+        });
+
+        alert("Success!");
+
+        window.location.href = 'rso_page.html';
     }
 
 </script>
