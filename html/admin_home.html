@@ -22,6 +22,7 @@
             padding: 20px;
             border: 1px solid #ccc;
             border-radius: 8px;
+            background-color: #dee2e6;
         }
         .events-container {
             flex-basis: 600px;
@@ -29,6 +30,7 @@
             padding: 20px;
             border: 1px solid #ccc;
             border-radius: 8px;
+            background-color: #dee2e6;
         }
         .form-group, .search-bar {
             margin-bottom: 15px;
@@ -73,7 +75,7 @@
         }
     </style>
 </head>
-<body>
+<body style="background-color: #102249;">
 
 <div class="container">
     <div class="form-container">
@@ -141,10 +143,18 @@
             <!-- Visibility -->
             <div class="form-group">
                 <label for="eventVisibility">Visibility</label>
-                <select id="eventVisibility" name="eventVisibility">
+                <select id="eventVisibility" name="eventVisibility" onchange="toggleRSOSelection(this.value)">
                     <option value="public">Public</option>
                     <option value="private">Private</option>
                     <option value="RSO">RSO</option>
+                </select>
+            </div>
+
+            <!-- RSO Selection (initially hidden) -->
+            <div class="form-group" id="rsoSelection" style="display: none;">
+                <label for="eventRSO">RSO</label>
+                <select id="eventRSO" name="eventRSO">
+                    <!-- RSO options will be dynamically populated here -->
                 </select>
             </div>
         </form>
@@ -161,6 +171,7 @@
         const form = document.getElementById('createEventForm');
         const UniversityID = sessionStorage.getItem('UniversityID');
         const UserID = sessionStorage.getItem('UserID');
+        
         // Collect form data
         const formData = {
             eventName: document.getElementById('eventName').value,
@@ -174,10 +185,10 @@
             eventContactPhone: document.getElementById('eventContactPhone').value,
             eventContactEmail: document.getElementById('eventContactEmail').value,
             eventVisibility: document.getElementById('eventVisibility').value,
+            eventName: document.getElementById('eventRSO').value,
             universityID: UniversityID,
             userID: UserID
         };
-        
         if (formData.eventVisibility === 'public')
         {
             
@@ -189,10 +200,18 @@
                 body: JSON.stringify(formData),
             })
             .then(response => response.json())
-            .then(data => console.log('Success:', data))
-            .catch((error) => console.error('Error:', error));
+            .then(data => {
+                // Assuming the PHP script returns a status or similar message
+                console.log('Success:', data);
+                alert("Submitted request for public event creation.");
+                 // Optionally navigate based on data.response or status
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert("Event already held at this location and time.");
+            });
 
-            alert("Submitted request for public event creation.");
+            
             window.location.href = 'admin_home.html';
         }
         else if (formData.eventVisibility === 'RSO')
@@ -205,10 +224,15 @@
                 body: JSON.stringify(formData),
             })
             .then(response => response.json())
-            .then(data => console.log('Success:', data))
-            .catch((error) => console.error('Error:', error));
-
-            alert("Created RSO Event.");
+            .then(data => {
+                console.log('Success:', data);
+                alert(alert("Created RSO Event."));
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert("Event already held at this location and time.");
+            });
+           
             window.location.href = 'admin_home.html';
         }
         else
@@ -222,10 +246,14 @@
                 body: JSON.stringify(formData),
             })
             .then(response => response.json())
-            .then(data => console.log('Success:', data))
-            .catch((error) => console.error('Error:', error));
-
-            alert("Event Created.");
+            .then(data => {
+                console.log('Success:', data);
+                alert(alert("Event Created."));
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert("Event already held at this location and time.");
+            });
             window.location.href = 'admin_home.html';
         }
 
@@ -245,18 +273,38 @@ window.addEventListener('load', function() {
             const eventEl = document.createElement('div');
             eventEl.classList.add('event-item');
             const mapContainerId = `map-${index}`; // Unique ID for each map container
-            eventEl.innerHTML = `
+            if (event.RSO)
+            {
+                eventEl.innerHTML = `
                 <h3>${event.Name}</h3>
                 <p>Date: ${event.Date}</p>
                 <p>Time: ${event.Time}</p>
+                <p>Visibility: ${event.Visibility}</p>
+                <p>RSO: ${event.RSO}</p>
                 <p>Description: ${event.Description}</p>
                 <p>Category: ${event.Category}</p>
                 <p>Location: ${event.LocationName}</p>
                 <div id="${mapContainerId}" style="height: 200px; width: 100%;"></div>
                 <p>Latitude: ${event.Latitude}, Longitude: ${event.Longitude}</p>
-                <p>Contact: ${event.ContactPhone}, ${event.ContactEmail}</p>
-                <p>Visibility: ${event.Visibility}</p>
+                <p>Contact: ${event.ContactPhone}, ${event.ContactEmail}</p>                
             `;
+            }
+            else
+            {
+                eventEl.innerHTML = `
+                <h3>${event.Name}</h3>
+                <p>Date: ${event.Date}</p>
+                <p>Time: ${event.Time}</p>
+                <p>Visibility: ${event.Visibility}</p>
+                <p>Description: ${event.Description}</p>
+                <p>Category: ${event.Category}</p>
+                <p>Location: ${event.LocationName}</p>
+                <div id="${mapContainerId}" style="height: 200px; width: 100%;"></div>
+                <p>Latitude: ${event.Latitude}, Longitude: ${event.Longitude}</p>
+                <p>Contact: ${event.ContactPhone}, ${event.ContactEmail}</p>                
+            `;
+            }
+
             eventsContainer.appendChild(eventEl);
 
             // Initialize the map for the current event
@@ -304,6 +352,46 @@ window.addEventListener('load', function() {
         sessionStorage.setItem('privelege', 'admin');
         window.location.href = 'create_rso.html'; // Update this URL to the actual RSO page URL
     }
+
+    function toggleRSOSelection(visibility) {
+        const rsoSelection = document.getElementById('rsoSelection');
+        if (visibility === 'RSO') {
+            rsoSelection.style.display = 'block';
+            fetchRSOs(); // Function to fetch and populate RSOs
+        } else {
+            rsoSelection.style.display = 'none';
+        }
+    }
+
+    function fetchRSOs() {
+        // Retrieve the userID from session storage
+        const userID = sessionStorage.getItem('UserID');
+
+        if (!userID) {
+            console.error('No UserID found in session storage');
+            return; // Exit the function if no userID is stored
+        }
+
+        // Construct the URL with the userID parameter
+        const url = `php/list_rso_options.php?userID=${userID}`;
+
+        // Fetch RSOs using the constructed URL
+        fetch(url)
+        .then(response => response.json())
+        .then(rsos => {
+            const rsoSelect = document.getElementById('eventRSO');
+            rsoSelect.innerHTML = ''; // Clear existing options
+            rsos.forEach(rso => {
+                const option = document.createElement('option');
+                option.value = rso.Name;  // Ensure your PHP script uses 'RSOID' as key or adjust accordingly
+                option.textContent = rso.Name;  // Ensure your PHP script uses 'Name' as key or adjust accordingly
+                rsoSelect.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Error loading RSOs:', error));
+    }
+
+
 </script>
 <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAwWWen_AsLzyieQr65NNZJGBwebbGDX0k&callback=initMap"></script>  
     

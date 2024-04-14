@@ -4,7 +4,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Dashboard</title>
-        <style>
+        <style >
             body {
                 font-family: Arial, sans-serif;
                 margin: 0;
@@ -61,7 +61,7 @@
             }
         </style>
     </head>
-    <body>
+    <body style="background-color: #102249;">
     
     <div class="container">
         <div id="loginSection">
@@ -125,10 +125,8 @@ async function register() {
     var formData = new FormData(document.getElementById('registrationForm'));
     
     var email = formData.get('Email');
-
-    alert(email);
+    
     var universityID = await getEmailDomain(email);
-    alert(universityID);
 
     if (universityID === null) {
         alert("Registration failed: Email domain does not exist.");

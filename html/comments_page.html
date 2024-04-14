@@ -16,11 +16,13 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #dee2e6;
         }
         .comments-container, .add-comment-form {
             min-width: 600px;
-            padding: 20px;
-            border: 1px solid #ccc;
             border-radius: 8px;
             margin-bottom: 15px;
         }
@@ -57,11 +59,11 @@
         }
     </style>
 </head>
-<body>
+<body style="background-color: #102249;">
 
 <div class="container">
     <button class="back-btn" onclick="navigateToHome()">Go To Home</button>
-    <h2>Event Comments</h2>
+    <h2 id="eventNameDisplay">Event Comments</h2>
     <div class="comments-container">
         <!-- Comments will be dynamically inserted here -->
     </div>
@@ -82,8 +84,12 @@
 <script>
 const urlParams = new URLSearchParams(window.location.search);
 const eventId = urlParams.get('eventId');
+const eventName = urlParams.get('eventName');
 
 window.addEventListener('load', function() {
+    if (eventName) { // Check if eventName is not null or undefined
+        eventNameDisplay.innerHTML = `Event Comments: ${eventName}`; // Set the event name in the title
+    }
     fetchComments();
 });
 function fetchComments() {

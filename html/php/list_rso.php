@@ -16,7 +16,7 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-$sql = "SELECT Name, RSOID FROM rsos";
+$sql = "SELECT Name, RSOID, Status FROM rsos";
 
 $result = $conn->query($sql);
 

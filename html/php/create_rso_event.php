@@ -14,6 +14,7 @@ $eventLongitude = $data['eventLongitude'];
 $eventContactPhone = $data['eventContactPhone'];
 $eventContactEmail = $data['eventContactEmail'];
 $eventVisibility = $data['eventVisibility'];
+$rsoName = $data['eventName'];
 $universityID = $data['universityID'];
 $userID = $data['userID'];
 
@@ -45,8 +46,8 @@ $getMemb->close();
 
 // Prepare and bind statement for inserting the event
 // Make sure your events table has a column for RSOID if you're going to store that information
-$stmt = $conn->prepare("INSERT INTO events (Name, Date, Time, Description, Category, LocationName, Latitude, Longitude, ContactPhone, ContactEmail, Visibility, UniversityID, RSOID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-$stmt->bind_param("ssssssddsssii", $eventName, $eventDate, $eventTime, $eventDescription, $eventCategory, $eventLocationName, $eventLatitude, $eventLongitude, $eventContactPhone, $eventContactEmail, $eventVisibility, $universityID, $rsoID);
+$stmt = $conn->prepare("INSERT INTO events (Name, Date, Time, Description, Category, LocationName, Latitude, Longitude, ContactPhone, ContactEmail, Visibility, UniversityID, RSOID, RSO) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+$stmt->bind_param("ssssssddsssiis", $eventName, $eventDate, $eventTime, $eventDescription, $eventCategory, $eventLocationName, $eventLatitude, $eventLongitude, $eventContactPhone, $eventContactEmail, $eventVisibility, $universityID, $rsoID, $rsoName);
 
 // Execute the insert operation
 if ($stmt->execute()) {

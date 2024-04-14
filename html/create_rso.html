@@ -8,25 +8,30 @@
         body {
             display: flex;
             justify-content: center;
-            align-items: start;
+            align-items: center;
             padding: 20px;
             gap: 20px;
         }
         .container {
             display: flex;
+            text-align: center;
+            min-width: 400px;
             gap: 20px;
         }
         .form-container {
             flex: 1;
+
             padding: 20px;
             border: 1px solid #ccc;
             border-radius: 8px;
+            background-color: #dee2e6;
         }
         .events-container {
             flex: 4; /* Makes the right side wider */
             padding: 20px;
             border: 1px solid #ccc;
             border-radius: 8px;
+            background-color: #dee2e6;
         }
         .form-group, .search-bar {
             margin-bottom: 15px;
@@ -71,82 +76,71 @@
         }
     </style>
 </head>
-<body>
+<body style="background-color: #102249;">
 
-<div class="container">
-    <div class="form-container">
-        <button onclick="navigateToHome()">Go To Home</button> <!-- New button for navigating to RSO page -->
-        <h2>Create RSO</h2>
-        <form method="post" action="php/create_rso.php">
-            <div class="form-group">
-                <label for="Name">RSO Name</label>
-                <input type="text" id="Name" name="Name">
-            </div>
-            <div class="form-group">
-                <label for="Admin">Admin Email</label>
-                <input type="text" id="Admin" name="Admin">
-            <div class="form-group">
-                <label for="m1">Member 1 Email</label>
-                <input type="text" id="m1" name="m1">
-            </div>
-            <div class="form-group">
-                <label for="m2">Member 2 Email</label>
-                <input type="text" id="m2" name="m2">
-            </div>
-            <div class="form-group">
-                <label for="m3">Member 3 Email</label>
-                <input type="text" id="m3" name="m3">
-            </div>
-            <div class="form-group">
-                <label for="m4">Member 4 Email</label>
-                <input type="text" id="m4" name="m4">
-            </div>
-            <button type="submit">Create RSO</button>
-        </form>
+    <div class="container">
+        <div class="form-container">
+            <button onclick="navigateToHome()" class="homebutton">Go To Home</button>
+            <h2>Create RSO</h2>
+            <form id="createRSOForm">
+                <div class="form-group">
+                    <label for="Name">RSO Name</label>
+                    <input type="text" id="Name" name="Name">
+                </div>
+                <div class="form-group">
+                    <label for="Admin">Admin Email</label>
+                    <input type="text" id="Admin" name="Admin">
+                </div>
+                <div class="form-group">
+                    <label for="m1">Member 1 Email</label>
+                    <input type="text" id="m1" name="m1">
+                </div>
+                <div class="form-group">
+                    <label for="m2">Member 2 Email</label>
+                    <input type="text" id="m2" name="m2">
+                </div>
+                <div class="form-group">
+                    <label for="m3">Member 3 Email</label>
+                    <input type="text" id="m3" name="m3">
+                </div>
+                <div class="form-group">
+                    <label for="m4">Member 4 Email</label>
+                    <input type="text" id="m4" name="m4">
+                </div>
+                <button type="button" onclick="submitForm()">Create RSO</button>
+            </form>
+        </div>
     </div>
-</div>
 <script>
-    window.addEventListener('load', function() {
-        fetch('php/create_rso.php') // Ensure this matches your PHP file's name.
-        .then(response => response.json())
-        .then(data => {
-            const eventsContainer = document.querySelector('.events-container');
-            data.forEach(event => {
-                const eventEl = document.createElement('div');
-                eventEl.classList.add('event-item');
-                eventEl.innerHTML = `
-                    <h3>${event.Name}</h3> <!-- Updated to remove 'event' prefix -->
-                    <p>Date: ${event.Date}</p>
-                    <p>Time: ${event.Time}</p>
-                    <p>Description: ${event.Description}</p>
-                    <p>Category: ${event.Category}</p>
-                    <p>Location: ${event.LocationName}</p>
-                    <p>Latitude: ${event.Latitude}, Longitude: ${event.Longitude}</p>
-                    <p>Contact: ${event.ContactPhone}, ${event.ContactEmail}</p>
-                    <p>Visibility: ${event.Visibility}</p>
-                    <button class="edit-btn">Edit</button>
-                    <button class="delete-btn">Delete</button>
-                `;
-                eventsContainer.appendChild(eventEl);
-            });
-        })
-        .catch(error => console.error('Error loading events:', error));
-    });
+    function submitForm() {
+        const form = document.getElementById('createRSOForm');
+        const formData = new FormData(form);
 
-    function navigateToHome() 
-    {
-        if (sessionStorage.getItem('privelege') == 'student')
-        {
-            window.location.href = 'student_home.html'; // Update this URL to the actual RSO page URL
+        fetch('php/create_rso.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.text())
+        .then(data => {
+            // Assuming the PHP script returns a status or similar message
+            console.log('Success:', data);
+            alert("RSO created!");
+            navigateToHome(); // Optionally navigate based on data.response or status
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+    }
+
+    function navigateToHome() {
+        const privelege = sessionStorage.getItem('privelege');
+        if (privelege === 'student') {
+            window.location.href = 'student_home.html';
+        } else if (privelege === 'admin') {
+            window.location.href = 'admin_home.html';
+        } else if (privelege === 'super_admin') {
+            window.location.href = 'super_admin_home.html';
         }
-        else if (sessionStorage.getItem('privelege') == 'admin')
-        {
-            window.location.href = 'admin_home.html'; // Update this URL to the actual RSO page URL
-        }
-        else if (sessionStorage.getItem('privelege') === 'super_admin')
-        {
-            window.location.href = 'super_admin_home.html'; // Update this URL to the actual RSO page URL
-        }   
     }
 </script>
     

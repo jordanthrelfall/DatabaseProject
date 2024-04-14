@@ -19,6 +19,10 @@
         .events-container {
             flex: 2; /* Makes the right side wider */
             min-width: 600px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #dee2e6;
         }
         .form-group, .search-bar {
             margin-bottom: 15px;
@@ -63,7 +67,7 @@
         }
     </style>
 </head>
-<body>
+<body style="background-color: #102249;">
 
 <div class="container">
     <div class="events-container">
@@ -88,21 +92,45 @@
                 const eventEl = document.createElement('div');
                 eventEl.classList.add('event-item');
 
-                if (event.Membership === 'Yes')
+                if (event.Status === 'active')
                 {
-                    eventEl.innerHTML = `
-                    <h3>${event.Name}</h3> <!-- Updated to remove 'event' prefix -->
-                    <button class="join-btn" onclick="leaveRSO(${event.RSOID})">Leave</button>
-                    `;
-                    eventsContainer.appendChild(eventEl);
+                    if (event.Membership === 'Yes')
+                    {
+                        eventEl.innerHTML = `
+                        <h3>${event.Name}</h3> <!-- Updated to remove 'event' prefix -->
+                        <button class="join-btn" onclick="leaveRSO(${event.RSOID})">Leave</button>
+                        `;
+                        eventsContainer.appendChild(eventEl);
+                    }
+                    else
+                    {
+                        eventEl.innerHTML = `
+                        <h3>${event.Name}</h3> <!-- Updated to remove 'event' prefix -->
+                        <button class="join-btn" onclick="joinRSO(${event.RSOID})">Join</button>
+                        `;
+                        eventsContainer.appendChild(eventEl);
+                    }
                 }
                 else
                 {
-                    eventEl.innerHTML = `
-                    <h3>${event.Name}</h3> <!-- Updated to remove 'event' prefix -->
-                    <button class="join-btn" onclick="joinRSO(${event.RSOID})">Join</button>
-                    `;
-                    eventsContainer.appendChild(eventEl);
+                    if (event.Membership === 'Yes')
+                    {
+                        eventEl.innerHTML = `
+                        <h3>${event.Name}</h3> <!-- Updated to remove 'event' prefix -->
+                        <p>**INACTIVE**</p>
+                        <button class="join-btn" onclick="leaveRSO(${event.RSOID})">Leave</button>
+                        `;
+                        eventsContainer.appendChild(eventEl);
+                    }
+                    else
+                    {
+                        eventEl.innerHTML = `
+                        <h3>${event.Name}</h3> <!-- Updated to remove 'event' prefix -->
+                        <p>**INACTIVE**</p>
+                        <button class="join-btn" onclick="joinRSO(${event.RSOID})">Join</button>
+                        `;
+                        eventsContainer.appendChild(eventEl);
+                    }
                 }
 
             });

@@ -22,6 +22,7 @@
             padding: 20px;
             border: 1px solid #ccc;
             border-radius: 8px;
+            background-color: #dee2e6;
         }
         .events-container {
             flex-basis: 600px;
@@ -29,6 +30,7 @@
             padding: 20px;
             border: 1px solid #ccc;
             border-radius: 8px;
+            background-color: #dee2e6;
         }
         .form-group, .search-bar {
             margin-bottom: 15px;
@@ -73,7 +75,7 @@
         }
     </style>
 </head>
-<body>
+<body style="background-color: #102249;">
 
 <div class="container">
     <div class="form-container">
@@ -142,10 +144,18 @@
             <!-- Visibility -->
             <div class="form-group">
                 <label for="eventVisibility">Visibility</label>
-                <select id="eventVisibility" name="eventVisibility">
+                <select id="eventVisibility" name="eventVisibility" onchange="toggleRSOSelection(this.value)">
                     <option value="public">Public</option>
                     <option value="private">Private</option>
                     <option value="RSO">RSO</option>
+                </select>
+            </div>
+
+            <!-- RSO Selection (initially hidden) -->
+            <div class="form-group" id="rsoSelection" style="display: none;">
+                <label for="eventRSO">RSO</label>
+                <select id="eventRSO" name="eventRSO">
+                    <!-- RSO options will be dynamically populated here -->
                 </select>
             </div>
             <button type="submit" id="createEventButton">Create Event</button>
@@ -190,10 +200,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify(formData),
             })
             .then(response => response.json())
-            .then(data => console.log('Success:', data))
-            .catch((error) => console.error('Error:', error));
+            .then(data => {
+                console.log('Success:', data);
+                alert("Event Created.");
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert("Event already held at this location and time.");
+            });
 
-            alert("Event Created.");
+            
             window.location.href = 'super_admin_home.html';
 
         // Here you can use the formData object to send a request to your server
@@ -286,6 +302,44 @@ window.addEventListener('load', function() {
             console.error('Error:', error);
         });
         window.location.href = 'super_admin_home.html';
+    }
+
+    function toggleRSOSelection(visibility) {
+        const rsoSelection = document.getElementById('rsoSelection');
+        if (visibility === 'RSO') {
+            rsoSelection.style.display = 'block';
+            fetchRSOs(); // Function to fetch and populate RSOs
+        } else {
+            rsoSelection.style.display = 'none';
+        }
+    }
+
+    function fetchRSOs() {
+        // Retrieve the userID from session storage
+        const userID = sessionStorage.getItem('UserID');
+
+        if (!userID) {
+            console.error('No UserID found in session storage');
+            return; // Exit the function if no userID is stored
+        }
+
+        // Construct the URL with the userID parameter
+        const url = `php/list_rso_options.php?userID=${userID}`;
+
+        // Fetch RSOs using the constructed URL
+        fetch(url)
+        .then(response => response.json())
+        .then(rsos => {
+            const rsoSelect = document.getElementById('eventRSO');
+            rsoSelect.innerHTML = ''; // Clear existing options
+            rsos.forEach(rso => {
+                const option = document.createElement('option');
+                option.value = rso.Name;  // Ensure your PHP script uses 'RSOID' as key or adjust accordingly
+                option.textContent = rso.Name;  // Ensure your PHP script uses 'Name' as key or adjust accordingly
+                rsoSelect.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Error loading RSOs:', error));
     }
 
     function approveEvent() {

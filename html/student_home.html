@@ -19,6 +19,10 @@
         .events-container {
             flex: 2; /* Makes the right side wider */
             min-width: 600px;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #dee2e6;
         }
         .form-group, .search-bar {
             margin-bottom: 15px;
@@ -63,7 +67,7 @@
         }
     </style>
 </head>
-<body>
+<body style="background-color: #102249;">
 
 <div class="container">
     <div class="events-container">
@@ -99,7 +103,7 @@
                     <p>Latitude: ${event.Latitude}, Longitude: ${event.Longitude}</p>
                     <p>Contact: ${event.ContactPhone}, ${event.ContactEmail}</p>
                     <p>Visibility: ${event.Visibility}</p>
-                    <button onclick="navigateToComments(${event.EventID})">Manage Comments</button>
+                    <button onclick="navigateToComments(${event.EventID},'${event.Name}')">Comments</button>
                 `;
 
                 eventsContainer.appendChild(eventEl);
@@ -118,11 +122,11 @@
         window.location.href = 'create_rso.html'; // Update this URL to the actual RSO page URL
     }
 
-    function navigateToComments(eventId) {
-        window.location.href = `comments_page.html?eventId=${eventId}`; // Adjust the path as necessary
+    function navigateToComments(eventId, eventName) {
+        window.location.href = `comments_page.html?eventId=${eventId}&eventName=${encodeURIComponent(eventName)}`; // Adjust the path as necessary
     }
 
 </script>
-
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAwWWen_AsLzyieQr65NNZJGBwebbGDX0k&callback=initMap"></script>
 </body>
 </html>
